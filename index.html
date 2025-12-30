@@ -1,13 +1,199 @@
 <!DOCTYPE html>
-<html>
-  <head>
-        <title>Tech Tank Management</title>
-  </head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Tank Management Programs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 50px;
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            max-width: 300px;
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 50px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .app-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .app-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .app-button.inventory {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.3);
+        }
+
+        .app-button.inventory:hover {
+            box-shadow: 0 12px 30px rgba(245, 87, 108, 0.5);
+        }
+
+        .app-button.manufacturing {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .app-button.manufacturing:hover {
+            box-shadow: 0 12px 30px rgba(79, 172, 254, 0.5);
+        }
+
+        .app-button.job-tracking {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            box-shadow: 0 8px 20px rgba(67, 233, 123, 0.3);
+        }
+
+        .app-button.job-tracking:hover {
+            box-shadow: 0 12px 30px rgba(67, 233, 123, 0.5);
+        }
+
+        .button-icon {
+            font-size: 3em;
+            color: white;
+        }
+
+        .button-title {
+            color: white;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .button-description {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #ecf0f1;
+            color: #95a5a6;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .button-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .app-button {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
 <body>
-      <h1>Welcome to Tech Tank Management</h1>
-    <p>This is a Heroku static site powered by PHP.</p>
+    <div class="container">
+        <div class="logo-container">
+            <img src="https://www.genspark.ai/api/files/s/yVGod2e7" alt="Tech Tank Logo" class="logo">
+        </div>
+
+        <h1>Tech Tank Management Programs</h1>
+        <p class="subtitle">Streamlined Solutions for Your Business Operations</p>
+
+        <div class="button-grid">
+            <!-- Inventory Management Button -->
+            <a href="inventory_custom_layout.html" class="app-button inventory">
+                <div class="button-icon">📦</div>
+                <div class="button-title">Inventory Management</div>
+                <div class="button-description">Track and manage your inventory levels, stock, and supplies in real-time</div>
+            </a>
+
+            <!-- Manufacturing Schedule Button -->
+            <a href="https://5b6d648f-60e4-4ebe-840f-cea7a93d6fce.vip.gensparksite.com" class="app-button manufacturing" target="_blank">
+                <div class="button-icon">⚙️</div>
+                <div class="button-title">Manufacturing Schedule</div>
+                <div class="button-description">Plan and monitor production schedules, setup times, and maintenance</div>
+            </a>
+
+            <!-- Job Tracking Button -->
+            <a href="https://0a8ae38b-e23a-4bff-a97f-a406e91d1821.vip.gensparksite.com" class="app-button job-tracking" target="_blank">
+                <div class="button-icon">📋</div>
+                <div class="button-title">Job Tracking</div>
+                <div class="button-description">Monitor employee tasks, time tracking, and part counting with badge scanning</div>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 Tech Tank Management Programs. All rights reserved.</p>
+            <p>Powered by Heroku, GitHub & Airtable</p>
+        </div>
+    </div>
 </body>
-</html></p></h1>
-</body></title>
-  </head>
 </html>
