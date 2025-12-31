@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Inventory Management - Tech Tank</title>
+      <style>
+                * {
+                              margin: 0;
+                              padding: 0;
+                              box-sizing: border-box;
+                }
+
+                body {
+                              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                              min-height: 100vh;
+                              padding: 20px;
+                }
+
+                .container {
+                              max-width: 1200px;
+                              margin: 0 auto;
+                              background: white;
+                              border-radius: 15px;
+                              box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                              overflow: hidden;
+                }
+
+                header {
+                              background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                              color: white;
+                              padding: 30px;
+                              text-align: center;
+                }
+
+                header h1 {
+                              font-size: 2.5em;
+                              margin-bottom: 10px;
+                }
+
+                header p {
+                              font-size: 1.1em;
+                              opacity: 0.9;
+                }
+
+                .content {
+                              padding: 40px;
+                }
+
+                .controls {
+                              display: grid;
+                              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                              gap: 20px;
+                              margin-bottom: 40px;
+                }
+
+                input, select, button {
+                              padding: 12px 15px;
+                              border: 2px solid #e0e0e0;
+                              border-radius: 8px;
+                              font-size: 1em;
+                              font-family: inherit;
+                }
+
+                button {
+                              background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                              color: white;
+                              border: none;
+                              cursor: pointer;
+                              transition: all 0.3s ease;
+                              font-weight: 600;
+                }
+
+                button:hover {
+                              transform: translateY(-2px);
+                              box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+                }
+
+                .table-container {
+                              overflow-x: auto;
+                              margin-top: 30px;
+                }
+
+                table {
+                              width: 100%;
+                              border-collapse: collapse;
+                }
+
+                thead {
+                              background-color: #f5f5f5;
+                }
+
+                th {
+                              padding: 15px;
+                              text-align: left;
+                              font-weight: 600;
+                              color: #333;
+                              border-bottom: 3px solid #f093fb;
+                }
+
+                td {
+                              padding: 15px;
+                              border-bottom: 1px solid #e0e0e0;
+                }
+
+                tr:hover {
+                              background-color: #f9f9f9;
+                }
+
+                .status-low {
+                              background-color: #ffebee;
+                              padding: 5px 10px;
+                              border-radius: 5px;
+                              color: #c62828;
+                              font-weight: 600;
+                }
+
+                .status-medium {
+                              background-color: #fff3e0;
+                              padding: 5px 10px;
+                              border-radius: 5px;
+                              color: #e65100;
+                              font-weight: 600;
+                }
+
+                .status-high {
+                              background-color: #e8f5e9;
+                              padding: 5px 10px;
+                              border-radius: 5px;
+                              color: #2e7d32;
+                              font-weight: 600;
+                }
+
+                .stats {
+                              display: grid;
+                              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                              gap: 20px;
+                              margin-bottom: 40px;
+                }
+
+                .stat-card {
+                              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                              color: white;
+                              padding: 20px;
+                              border-radius: 10px;
+                              text-align: center;
+                }
+
+                .stat-card h3 {
+                              font-size: 2em;
+                              margin-bottom: 10px;
+                }
+
+                .stat-card p {
+                              opacity: 0.9;
+                }
+
+                .back-button {
+                              display: inline-block;
+                              margin-bottom: 20px;
+                              background: #667eea;
+                              padding: 10px 20px;
+                              text-decoration: none;
+                              color: white;
+                              border-radius: 5px;
+                              transition: all 0.3s ease;
+                }
+
+                .back-button:hover {
+                              background: #764ba2;
+                              transform: translateY(-2px);
+                }
+
+                .loading {
+                              text-align: center;
+                              padding: 40px;
+                              font-size: 1.2em;
+                              color: #666;
+                }
+
+                @media (max-width: 768px) {
+                              header h1 {
+                                                font-size: 1.8em;
+                              }
+
+                              .content {
+                                                padding: 20px;
+                              }
+
+                              .controls {
+                                                grid-template-columns: 1fr;
+                              }
+
+                              table {
+                                                font-size: 0.9em;
+                              }
+
+                              th, td {
+                                                padding: 10px;
+                              }
+                }
+            </style>
+  </head>
+  <body>
+        <div class="container">
+                  <header>
+                                <a href="index.html" class="back-button">← Back to Home</a>a>
+                                <h1>📦 Inventory Management</h1>
+                              <p>Real-time inventory tracking and management</p>
+                  </header>
+        
+                <div class="content">
+                            <div class="stats">
+                                            <div class="stat-card">
+                                                                <h3 id="totalItems">0</h3>
+                                                                <p>Total Items</p>
+                                            </div>div>
+                                            <div class="stat-card">
+                                                                <h3 id="totalValue">$0</h3>
+                                                                <p>Total Value</p>
+                                            </div>div>
+                                            <div class="stat-card">
+                                                                <h3 id="lowStock">0</h3>
+                                                                <p>Low Stock Items</p>
+                                            </div>div>
+                            </div>div>
+                
+                            <div class="controls">
+                                            <input type="text" id="searchInput" placeholder="Search items...">
+                                            <input type="text" id="itemName" placeholder="Item Name">
+                                            <input type="text" id="itemSKU" placeholder="SKU">
+                                            <input type="number" id="itemQuantity" placeholder="Quantity" min="0">
+                                            <input type="number" id="itemCost" placeholder="Unit Cost" min="0" step="0.01">
+                                            <input type="text" id="itemLocation" placeholder="Location">
+                                            <button onclick="addItem()">Add Item</button>button>
+                            </div>div>
+                
+                            <div class="table-container">
+                                            <table>
+                                                                  <thead>
+                                                                                            <tr>
+                                                                                                                          <th>Item Name</th>
+                                                                                              <th>SKU</th>
+                                                                                              <th>Quantity</th>
+                                                                                              <th>Unit Cost</th>
+                                                                                              <th>Total Value</th>
+                                                                                              <th>Location</th>
+                                                                                              <th>Status</th>
+                                                                                              <th>Actions</th>
+                                                                                            </tr>
+                                                                  </thead>
+                                                                <tbody id="inventoryTable">
+                                                                    <tr class="loading">
+                                                                        <td colspan="8">Loading inventory data...</td>td>
+                                                                    </tr>
+                                                                </tbody>tbody>
+                                            </table>
+                            </div>div>
+                </div>div>
+        </div>div>
+  
+      <script>
+                let inventory = [
+                  { id: 1, name: 'Steel Bolts', sku: 'SB-001', quantity: 500, cost: 0.50, location: 'Shelf A', totalValue: 250 },
+                  { id: 2, name: 'Aluminum Plates', sku: 'AP-001', quantity: 50, cost: 25.00, location: 'Shelf B', totalValue: 1250 },
+                  { id: 3, name: 'Rubber Gaskets', sku: 'RG-001', quantity: 10, cost: 5.00, location: 'Shelf C', totalValue: 50 },
+                  { id: 4, name: 'Copper Wire', sku: 'CW-001', quantity: 200, cost: 2.00, location: 'Shelf D', totalValue: 400 }
+                          ];
+
+                function displayInventory(data = inventory) {
+                              const table = document.getElementById('inventoryTable');
+
+                              if (data.length === 0) {
+                                                table.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No items found</td></tr>';
+                                                return;
+                              }
+
+                              table.innerHTML = data.map(item => `
+                                              <tr>
+                                                                  <td>${item.name}</td>
+                                                                                      <td>${item.sku}</td>
+                                                                                                          <td>${item.quantity}</td>
+                                                                                                                              <td>$${item.cost.toFixed(2)}</td>
+                                                                                                                                                  <td>$${(item.quantity * item.cost).toFixed(2)}</td>
+                                                                                                                                                                      <td>${item.location}</td>
+                                                                                                                                                                                          <td>
+                                                                                                                                                                                                                  <span class="status-${getStatus(item.quantity)}">
+                                                                                                                                                                                                                                              ${item.quantity > 100 ? 'Good Stock' : item.quantity > 20 ? 'Medium' : 'Low Stock'}
+                                                                                                                                                                                                                                                                      </span>
+                                                                                                                                                                                                                                                                                          </td>
+                                                                                                                                                                                                                                                                                                              <td>
+                                                                                                                                                                                                                                                                                                                                      <button onclick="deleteItem(${item.id})" style="background: #dc3545; padding: 5px 10px; font-size: 0.9em;">Delete</button>
+                                                                                                                                                                                                                                                                                                                                                          </td>
+                                                                                                                                                                                                                                                                                                                                                                          </tr>
+                                                                                                                                                                                                                                                                                                                                                                                      `).join('');
+
+                              updateStats();
+                }
+
+                function getStatus(quantity) {
+                              if (quantity > 100) return 'high';
+                              if (quantity > 20) return 'medium';
+                              return 'low';
+                }
+
+                function updateStats() {
+                              const totalItems = inventory.reduce((sum, item) => sum + item.quantity, 0);
+                              const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * item.cost), 0);
+                              const lowStockCount = inventory.filter(item => item.quantity <= 20).length;
+
+                              document.getElementById('totalItems').textContent = totalItems;
+                              document.getElementById('totalValue').textContent = '$' + totalValue.toFixed(2);
+                              document.getElementById('lowStock').textContent = lowStockCount;
+                }
+
+                function addItem() {
+                              const name = document.getElementById('itemName').value;
+                              const sku = document.getElementById('itemSKU').value;
+                              const quantity = parseInt(document.getElementById('itemQuantity').value) || 0;
+                              const cost = parseFloat(document.getElementById('itemCost').value) || 0;
+                              const location = document.getElementById('itemLocation').value;
+
+                              if (!name || !sku) {
+                                                alert('Please enter item name and SKU');
+                                                return;
+                              }
+
+                              const newItem = {
+                                                id: Math.max(...inventory.map(i => i.id), 0) + 1,
+                                                name, sku, quantity, cost, location,
+                                                totalValue: quantity * cost
+                              };
+
+                              inventory.push(newItem);
+                              clearInputs();
+                              displayInventory();
+                }
+
+                function deleteItem(id) {
+                              if (confirm('Are you sure you want to delete this item?')) {
+                                                inventory = inventory.filter(item => item.id !== id);
+                                                displayInventory();
+                              }
+                }
+
+                function clearInputs() {
+                              document.getElementById('itemName').value = '';
+                              document.getElementById('itemSKU').value = '';
+                              document.getElementById('itemQuantity').value = '';
+                              document.getElementById('itemCost').value = '';
+                              document.getElementById('itemLocation').value = '';
+                }
+
+                document.getElementById('searchInput').addEventListener('keyup', function() {
+                              const searchTerm = this.value.toLowerCase();
+                              const filtered = inventory.filter(item =>
+                                                item.name.toLowerCase().includes(searchTerm) ||
+                                                item.sku.toLowerCase().includes(searchTerm)
+                                                                            );
+                              displayInventory(filtered);
+                });
+
+                displayInventory();
+      </script>
+  </body>
+</html>html>
+      </script></th></th>
+                                                                                            </tr>
+                                                                  </thead>
+                                            </table></p></p></h1>
+                  </header>
+  </body>
+      </style></title>
+  </head>
