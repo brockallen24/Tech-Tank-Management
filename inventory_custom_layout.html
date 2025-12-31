@@ -179,6 +179,44 @@
                               color: #666;
                 }
 
+                .sync-status {
+                              position: fixed;
+                              top: 20px;
+                              right: 20px;
+                              background: white;
+                              padding: 10px 20px;
+                              border-radius: 25px;
+                              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                              display: flex;
+                              align-items: center;
+                              gap: 10px;
+                              z-index: 1000;
+                              font-size: 0.9em;
+                }
+
+                .sync-indicator {
+                              width: 10px;
+                              height: 10px;
+                              border-radius: 50%;
+                              background: #4caf50;
+                              animation: pulse 2s infinite;
+                }
+
+                .sync-indicator.error {
+                              background: #f44336;
+                              animation: none;
+                }
+
+                .sync-indicator.syncing {
+                              background: #ff9800;
+                              animation: pulse 0.5s infinite;
+                }
+
+                @keyframes pulse {
+                              0%, 100% { opacity: 1; }
+                              50% { opacity: 0.5; }
+                }
+
                 @media (max-width: 768px) {
                               header h1 {
                                                 font-size: 1.8em;
@@ -203,6 +241,12 @@
             </style>
   </head>
   <body>
+        <!-- Sync Status Indicator -->
+        <div class="sync-status">
+              <div class="sync-indicator" id="syncIndicator"></div>
+              <span id="syncText">Connecting...</span>
+        </div>
+
         <div class="container">
                   <header>
                                 <a href="index.html" class="back-button">← Back to Home</a>a>
@@ -259,37 +303,154 @@
                             </div>div>
                 </div>div>
         </div>div>
-  
+
       <script>
-                let inventory = [
-                  { id: 1, name: 'Steel Bolts', sku: 'SB-001', quantity: 500, cost: 0.50, location: 'Shelf A', totalValue: 250 },
-                  { id: 2, name: 'Aluminum Plates', sku: 'AP-001', quantity: 50, cost: 25.00, location: 'Shelf B', totalValue: 1250 },
-                  { id: 3, name: 'Rubber Gaskets', sku: 'RG-001', quantity: 10, cost: 5.00, location: 'Shelf C', totalValue: 50 },
-                  { id: 4, name:<script>
-                    let inventory = [];
+        // Inventory data and configuration
+        let inventory = [];
         const API_URL = '/api.php';
+        const REFRESH_INTERVAL = 5000; // Refresh every 5 seconds
+        const STORAGE_KEY = 'tech_tank_inventory';
+        let refreshTimer = null;
+        let lastSyncTime = null;
+
+        // Update sync status indicator
+        function updateSyncStatus(status, message) {
+              const indicator = document.getElementById('syncIndicator');
+              const text = document.getElementById('syncText');
+
+              indicator.className = 'sync-indicator';
+
+              switch(status) {
+                    case 'syncing':
+                          indicator.classList.add('syncing');
+                          text.textContent = message || 'Syncing...';
+                          break;
+                    case 'success':
+                          text.textContent = message || 'Synced';
+                          lastSyncTime = new Date();
+                          break;
+                    case 'error':
+                          indicator.classList.add('error');
+                          text.textContent = message || 'Sync Error';
+                          break;
+                    default:
+                          text.textContent = message || 'Connected';
+              }
+        }
+
+        // Save to localStorage
+        function saveToLocalStorage() {
+              try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                          data: inventory,
+                          timestamp: new Date().toISOString()
+                    }));
+              } catch (error) {
+                    console.error('Error saving to localStorage:', error);
+              }
+        }
+
+        // Load from localStorage
+        function loadFromLocalStorage() {
+              try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    if (stored) {
+                          const parsed = JSON.parse(stored);
+                          inventory = parsed.data || [];
+                          displayInventory();
+                          updateSyncStatus('success', 'Loaded from cache');
+                          return true;
+                    }
+              } catch (error) {
+                    console.error('Error loading from localStorage:', error);
+              }
+              return false;
+        }
+
+        // Start auto-refresh
+        function startAutoRefresh() {
+              if (refreshTimer) {
+                    clearInterval(refreshTimer);
+              }
+              refreshTimer = setInterval(() => {
+                    loadInventory(true); // Silent refresh
+              }, REFRESH_INTERVAL);
+        }
+
+        // Stop auto-refresh
+        function stopAutoRefresh() {
+              if (refreshTimer) {
+                    clearInterval(refreshTimer);
+                    refreshTimer = null;
+              }
+        }
 
         // Load inventory on page load
         document.addEventListener('DOMContentLoaded', function() {
+              // Try loading from localStorage first for instant display
+              const hasCache = loadFromLocalStorage();
+
+              // Then load fresh data from API
               loadInventory();
+
+              // Start auto-refresh for cross-browser sync
+              startAutoRefresh();
+        });
+
+        // Stop auto-refresh when page is hidden (save battery/bandwidth)
+        document.addEventListener('visibilitychange', function() {
+              if (document.hidden) {
+                    stopAutoRefresh();
+              } else {
+                    loadInventory();
+                    startAutoRefresh();
+              }
         });
 
         // Load inventory from backend
-        async function loadInventory() {
+        async function loadInventory(silent = false) {
               try {
-                        const response = await fetch(`${API_URL}?action=read`);
+                        if (!silent) {
+                              updateSyncStatus('syncing', 'Syncing...');
+                        }
+
+                        const response = await fetch(`${API_URL}?action=read`, {
+                              cache: 'no-cache', // Always get fresh data
+                              headers: {
+                                    'Cache-Control': 'no-cache'
+                              }
+                        });
+
+                        if (!response.ok) {
+                              throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
                         const result = await response.json();
 
                         if (result.success) {
                                       inventory = result.data;
+                                      saveToLocalStorage(); // Save to cache
                                       displayInventory();
+                                      updateSyncStatus('success', `Synced (${inventory.length} items)`);
                         } else {
                                       console.error('Error loading inventory:', result.error);
-                                      alert('Error loading inventory: ' + (result.error || 'Unknown error'));
+                                      updateSyncStatus('error', 'API Error');
+                                      if (!silent) {
+                                            alert('Error loading inventory: ' + (result.error || 'Unknown error'));
+                                      }
                         }
               } catch (error) {
                         console.error('Network error:', error);
-                        alert('Network error loading inventory');
+                        updateSyncStatus('error', 'Network Error');
+
+                        // If we have cached data, continue using it
+                        if (inventory.length > 0) {
+                              if (!silent) {
+                                    alert('Network error. Showing cached data.');
+                              }
+                        } else if (!silent) {
+                              alert('Network error and no cached data available.');
+                        }
               }
         }
 
@@ -357,6 +518,8 @@
               }
 
               try {
+                        updateSyncStatus('syncing', 'Adding item...');
+
                         const response = await fetch(`${API_URL}?action=create`, {
                                       method: 'POST',
                                       headers: { 'Content-Type': 'application/json' },
@@ -367,13 +530,15 @@
 
                         if (result.success) {
                                       clearInputs();
-                                      loadInventory(); // Refresh from backend
+                                      await loadInventory(); // Refresh from backend
                                       alert('Item created successfully!');
                         } else {
+                                      updateSyncStatus('error', 'Add failed');
                                       alert('Error creating item: ' + (result.error || 'Unknown error'));
                         }
               } catch (error) {
                         console.error('Error:', error);
+                        updateSyncStatus('error', 'Network error');
                         alert('Error creating item');
               }
         }
@@ -383,6 +548,8 @@
               if (!confirm('Are you sure you want to delete this item?')) return;
 
               try {
+                        updateSyncStatus('syncing', 'Deleting item...');
+
                         const response = await fetch(`${API_URL}?action=delete`, {
                                       method: 'POST',
                                       headers: { 'Content-Type': 'application/json' },
@@ -392,13 +559,15 @@
                         const result = await response.json();
 
                         if (result.success) {
-                                      loadInventory(); // Refresh from backend
+                                      await loadInventory(); // Refresh from backend
                                       alert('Item deleted successfully!');
                         } else {
+                                      updateSyncStatus('error', 'Delete failed');
                                       alert('Error deleting item: ' + (result.error || 'Unknown error'));
                         }
               } catch (error) {
                         console.error('Error:', error);
+                        updateSyncStatus('error', 'Network error');
                         alert('Error deleting item');
               }
         }
