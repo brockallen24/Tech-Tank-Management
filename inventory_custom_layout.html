@@ -265,111 +265,162 @@
                   { id: 1, name: 'Steel Bolts', sku: 'SB-001', quantity: 500, cost: 0.50, location: 'Shelf A', totalValue: 250 },
                   { id: 2, name: 'Aluminum Plates', sku: 'AP-001', quantity: 50, cost: 25.00, location: 'Shelf B', totalValue: 1250 },
                   { id: 3, name: 'Rubber Gaskets', sku: 'RG-001', quantity: 10, cost: 5.00, location: 'Shelf C', totalValue: 50 },
-                  { id: 4, name: 'Copper Wire', sku: 'CW-001', quantity: 200, cost: 2.00, location: 'Shelf D', totalValue: 400 }
-                          ];
+                  { id: 4, name:<script>
+                    let inventory = [];
+        const API_URL = '/api.php';
 
-                function displayInventory(data = inventory) {
-                              const table = document.getElementById('inventoryTable');
+        // Load inventory on page load
+        document.addEventListener('DOMContentLoaded', function() {
+              loadInventory();
+        });
 
-                              if (data.length === 0) {
-                                                table.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No items found</td></tr>';
-                                                return;
-                              }
+        // Load inventory from backend
+        async function loadInventory() {
+              try {
+                        const response = await fetch(`${API_URL}?action=read`);
+                        const result = await response.json();
 
-                              table.innerHTML = data.map(item => `
-                                              <tr>
-                                                                  <td>${item.name}</td>
-                                                                                      <td>${item.sku}</td>
-                                                                                                          <td>${item.quantity}</td>
-                                                                                                                              <td>$${item.cost.toFixed(2)}</td>
-                                                                                                                                                  <td>$${(item.quantity * item.cost).toFixed(2)}</td>
-                                                                                                                                                                      <td>${item.location}</td>
-                                                                                                                                                                                          <td>
-                                                                                                                                                                                                                  <span class="status-${getStatus(item.quantity)}">
-                                                                                                                                                                                                                                              ${item.quantity > 100 ? 'Good Stock' : item.quantity > 20 ? 'Medium' : 'Low Stock'}
-                                                                                                                                                                                                                                                                      </span>
-                                                                                                                                                                                                                                                                                          </td>
-                                                                                                                                                                                                                                                                                                              <td>
-                                                                                                                                                                                                                                                                                                                                      <button onclick="deleteItem(${item.id})" style="background: #dc3545; padding: 5px 10px; font-size: 0.9em;">Delete</button>
-                                                                                                                                                                                                                                                                                                                                                          </td>
-                                                                                                                                                                                                                                                                                                                                                                          </tr>
-                                                                                                                                                                                                                                                                                                                                                                                      `).join('');
+                        if (result.success) {
+                                      inventory = result.data;
+                                      displayInventory();
+                        } else {
+                                      console.error('Error loading inventory:', result.error);
+                                      alert('Error loading inventory: ' + (result.error || 'Unknown error'));
+                        }
+              } catch (error) {
+                        console.error('Network error:', error);
+                        alert('Network error loading inventory');
+              }
+        }
 
-                              updateStats();
-                }
+        // Display inventory in table
+        function displayInventory(data = inventory) {
+              const table = document.getElementById('inventoryTable');
 
-                function getStatus(quantity) {
-                              if (quantity > 100) return 'high';
-                              if (quantity > 20) return 'medium';
-                              return 'low';
-                }
+              if (data.length === 0) {
+                        table.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No items found</td></tr>';
+                        updateStats();
+                        return;
+              }
 
-                function updateStats() {
-                              const totalItems = inventory.reduce((sum, item) => sum + item.quantity, 0);
-                              const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * item.cost), 0);
-                              const lowStockCount = inventory.filter(item => item.quantity <= 20).length;
+              table.innerHTML = data.map(item => `
+                           <tr>
+                                       <td>${item.name}</td>
+                                                   <td>${item.sku}</td>
+                                                               <td>${item.quantity}</td>
+                                                                           <td>$${parseFloat(item.cost).toFixed(2)}</td>
+                                                                                       <td>$${(item.quantity * item.cost).toFixed(2)}</td>
+                                                                                                   <td>${item.location}</td>
+                                                                                                               <td>
+                                                                                                                               <span class="status-${getStatus(item.quantity)}">
+                                                                                                                                                   ${item.quantity > 100 ? 'Good Stock' : item.quantity > 20 ? 'Medium' : 'Low Stock'}
+                                                                                                                                                                   </span>
+                                                                                                                                                                               </td>
+                                                                                                                                                                                           <td>
+                                                                                                                                                                                                           <button onclick="deleteItem('${item.id}')" style="background: #dc3545; padding: 5px 10px; font-size: 0.9em;">Delete</button>
+                                                                                                                                                                                                                       </td>
+                                                                                                                                                                                                                               </tr>
+                                                                                                                                                                                                                                   `).join('');
 
-                              document.getElementById('totalItems').textContent = totalItems;
-                              document.getElementById('totalValue').textContent = '$' + totalValue.toFixed(2);
-                              document.getElementById('lowStock').textContent = lowStockCount;
-                }
+              updateStats();
+        }
 
-                function addItem() {
-                              const name = document.getElementById('itemName').value;
-                              const sku = document.getElementById('itemSKU').value;
-                              const quantity = parseInt(document.getElementById('itemQuantity').value) || 0;
-                              const cost = parseFloat(document.getElementById('itemCost').value) || 0;
-                              const location = document.getElementById('itemLocation').value;
+        // Get stock status
+        function getStatus(quantity) {
+              if (quantity > 100) return 'high';
+              if (quantity > 20) return 'medium';
+              return 'low';
+        }
 
-                              if (!name || !sku) {
-                                                alert('Please enter item name and SKU');
-                                                return;
-                              }
+        // Update stats
+        function updateStats() {
+              const totalItems = inventory.reduce((sum, item) => sum + item.quantity, 0);
+              const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * item.cost), 0);
+              const lowStockCount = inventory.filter(item => item.quantity <= 20).length;
 
-                              const newItem = {
-                                                id: Math.max(...inventory.map(i => i.id), 0) + 1,
-                                                name, sku, quantity, cost, location,
-                                                totalValue: quantity * cost
-                              };
+              document.getElementById('totalItems').textContent = totalItems;
+              document.getElementById('totalValue').textContent = '$' + totalValue.toFixed(2);
+              document.getElementById('lowStock').textContent = lowStockCount;
+        }
 
-                              inventory.push(newItem);
-                              clearInputs();
-                              displayInventory();
-                }
+        // Add item to backend
+        async function addItem() {
+              const name = document.getElementById('itemName').value;
+              const sku = document.getElementById('itemSKU').value;
+              const quantity = parseInt(document.getElementById('itemQuantity').value) || 0;
+              const cost = parseFloat(document.getElementById('itemCost').value) || 0;
+              const location = document.getElementById('itemLocation').value;
 
-                function deleteItem(id) {
-                              if (confirm('Are you sure you want to delete this item?')) {
-                                                inventory = inventory.filter(item => item.id !== id);
-                                                displayInventory();
-                              }
-                }
+              if (!name || !sku) {
+                        alert('Please enter item name and SKU');
+                        return;
+              }
 
-                function clearInputs() {
-                              document.getElementById('itemName').value = '';
-                              document.getElementById('itemSKU').value = '';
-                              document.getElementById('itemQuantity').value = '';
-                              document.getElementById('itemCost').value = '';
-                              document.getElementById('itemLocation').value = '';
-                }
+              try {
+                        const response = await fetch(`${API_URL}?action=create`, {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ name, sku, quantity, cost, location })
+                        });
 
-                document.getElementById('searchInput').addEventListener('keyup', function() {
-                              const searchTerm = this.value.toLowerCase();
-                              const filtered = inventory.filter(item =>
-                                                item.name.toLowerCase().includes(searchTerm) ||
-                                                item.sku.toLowerCase().includes(searchTerm)
-                                                                            );
-                              displayInventory(filtered);
-                });
+                        const result = await response.json();
 
-                displayInventory();
+                        if (result.success) {
+                                      clearInputs();
+                                      loadInventory(); // Refresh from backend
+                                      alert('Item created successfully!');
+                        } else {
+                                      alert('Error creating item: ' + (result.error || 'Unknown error'));
+                        }
+              } catch (error) {
+                        console.error('Error:', error);
+                        alert('Error creating item');
+              }
+        }
+
+        // Delete item from backend
+        async function deleteItem(id) {
+              if (!confirm('Are you sure you want to delete this item?')) return;
+
+              try {
+                        const response = await fetch(`${API_URL}?action=delete`, {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ id })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                                      loadInventory(); // Refresh from backend
+                                      alert('Item deleted successfully!');
+                        } else {
+                                      alert('Error deleting item: ' + (result.error || 'Unknown error'));
+                        }
+              } catch (error) {
+                        console.error('Error:', error);
+                        alert('Error deleting item');
+              }
+        }
+
+        // Clear input fields
+        function clearInputs() {
+              document.getElementById('itemName').value = '';
+              document.getElementById('itemSKU').value = '';
+              document.getElementById('itemQuantity').value = '';
+              document.getElementById('itemCost').value = '';
+              document.getElementById('itemLocation').value = '';
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+              const searchTerm = this.value.toLowerCase();
+              const filtered = inventory.filter(item =>
+                        item.name.toLowerCase().includes(searchTerm) ||
+                        item.sku.toLowerCase().includes(searchTerm)
+                                                    );
+              displayInventory(filtered);
+        });
       </script>
-  </body>
+  </body>body>
 </html>html>
-      </script></th></th>
-                                                                                            </tr>
-                                                                  </thead>
-                                            </table></p></p></h1>
-                  </header>
-  </body>
-      </style></title>
-  </head>
