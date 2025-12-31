@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Tank - System Diagnostics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f093fb;
+            padding-bottom: 10px;
+        }
+
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .test-item.pass {
+            border-left-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .test-item.fail {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+
+        .test-item.warn {
+            border-left-color: #ff9800;
+            background: #fff3e0;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status.pass {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status.fail {
+            background: #f44336;
+            color: white;
+        }
+
+        .status.warn {
+            background: #ff9800;
+            color: white;
+        }
+
+        .status.pending {
+            background: #ccc;
+            color: white;
+        }
+
+        button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+        }
+
+        pre {
+            background: #333;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+
+        .code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #e91e63;
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Tech Tank System Diagnostics</h1>
+        <p>This page will test your Airtable configuration and identify any issues.</p>
+
+        <div style="margin: 20px 0;">
+            <button onclick="runAllTests()">🚀 Run All Tests</button>
+            <button onclick="location.reload()">🔄 Reset</button>
+        </div>
+
+        <h2>Configuration Tests</h2>
+
+        <div class="test-item" id="test-api-status">
+            <strong>1. API Configuration Status</strong>
+            <span class="status pending">PENDING</span>
+            <div id="result-api-status"></div>
+        </div>
+
+        <div class="test-item" id="test-api-read">
+            <strong>2. Read Inventory Data</strong>
+            <span class="status pending">PENDING</span>
+            <div id="result-api-read"></div>
+        </div>
+
+        <div class="test-item" id="test-browser-storage">
+            <strong>3. Browser Storage Test</strong>
+            <span class="status pending">PENDING</span>
+            <div id="result-browser-storage"></div>
+        </div>
+
+        <div class="test-item" id="test-cors">
+            <strong>4. CORS & Network Test</strong>
+            <span class="status pending">PENDING</span>
+            <div id="result-cors"></div>
+        </div>
+
+        <h2>Required Configuration</h2>
+        <div class="instructions">
+            <h3>What You Need in Heroku Config Vars:</h3>
+            <p><strong>1. AIRTABLE_API_KEY</strong> - Your Airtable Personal Access Token</p>
+            <ul>
+                <li>Get it from: <a href="https://airtable.com/create/tokens" target="_blank">https://airtable.com/create/tokens</a></li>
+                <li>Should start with <span class="code">pat</span></li>
+                <li>Needs scopes: data.records:read, data.records:write, schema.bases:read</li>
+            </ul>
+            <br>
+            <p><strong>2. AIRTABLE_INVENTORY_BASE_ID</strong> - Your Inventory Base ID</p>
+            <ul>
+                <li>Found in your Airtable URL</li>
+                <li>Should start with <span class="code">app</span></li>
+                <li>Example: <span class="code">appAbC123DefGhi45</span></li>
+            </ul>
+        </div>
+
+        <h2>Airtable Base Requirements</h2>
+        <div class="instructions">
+            <h3>Your Airtable "Inventory" table must have these fields:</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <tr style="background: #f5f5f5;">
+                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Field Name</th>
+                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Field Type</th>
+                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Required</th>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><span class="code">name</span></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Single line text</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Yes</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><span class="code">sku</span></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Single line text</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Yes</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><span class="code">quantity</span></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Number (Integer)</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Yes</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><span class="code">cost</span></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Number (Currency/Decimal)</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Yes</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><span class="code">location</span></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Single line text</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Yes</td>
+                </tr>
+            </table>
+            <p style="margin-top: 15px;"><strong>⚠️ Field names are case-sensitive!</strong> Use lowercase: <span class="code">name</span>, not <span class="code">Name</span></p>
+        </div>
+
+        <h2>Test Results Summary</h2>
+        <div id="summary" style="margin-top: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+            <p>Click "Run All Tests" to begin diagnostics...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api.php';
+        let testResults = {
+            apiStatus: false,
+            apiRead: false,
+            browserStorage: false,
+            cors: false
+        };
+
+        async function runAllTests() {
+            console.log('Starting diagnostic tests...');
+            await testApiStatus();
+            await testApiRead();
+            await testBrowserStorage();
+            await testCors();
+            showSummary();
+        }
+
+        async function testApiStatus() {
+            const testDiv = document.getElementById('test-api-status');
+            const resultDiv = document.getElementById('result-api-status');
+
+            try {
+                resultDiv.innerHTML = '<div class="loading"></div> Testing...';
+
+                const response = await fetch(`${API_URL}?action=status`);
+                const result = await response.json();
+
+                if (result.configured) {
+                    testResults.apiStatus = true;
+                    testDiv.className = 'test-item pass';
+                    testDiv.querySelector('.status').className = 'status pass';
+                    testDiv.querySelector('.status').textContent = 'PASS ✓';
+
+                    resultDiv.innerHTML = `
+                        <p style="color: green; margin-top: 10px;">✓ API is properly configured!</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } else {
+                    testResults.apiStatus = false;
+                    testDiv.className = 'test-item fail';
+                    testDiv.querySelector('.status').className = 'status fail';
+                    testDiv.querySelector('.status').textContent = 'FAIL ✗';
+
+                    resultDiv.innerHTML = `
+                        <p style="color: red; margin-top: 10px;">✗ Configuration Error!</p>
+                        <p><strong>Problem:</strong> ${result.message}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                        <p style="margin-top: 10px;"><strong>Fix:</strong> Set Heroku config vars:</p>
+                        <ul>
+                            <li>AIRTABLE_API_KEY</li>
+                            <li>AIRTABLE_INVENTORY_BASE_ID</li>
+                        </ul>
+                    `;
+                }
+            } catch (error) {
+                testResults.apiStatus = false;
+                testDiv.className = 'test-item fail';
+                testDiv.querySelector('.status').className = 'status fail';
+                testDiv.querySelector('.status').textContent = 'FAIL ✗';
+
+                resultDiv.innerHTML = `
+                    <p style="color: red; margin-top: 10px;">✗ Network Error!</p>
+                    <p>${error.message}</p>
+                    <p><strong>Fix:</strong> Check that api.php is accessible and deployed.</p>
+                `;
+            }
+        }
+
+        async function testApiRead() {
+            const testDiv = document.getElementById('test-api-read');
+            const resultDiv = document.getElementById('result-api-read');
+
+            try {
+                resultDiv.innerHTML = '<div class="loading"></div> Testing...';
+
+                const response = await fetch(`${API_URL}?action=read`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    testResults.apiRead = true;
+                    testDiv.className = 'test-item pass';
+                    testDiv.querySelector('.status').className = 'status pass';
+                    testDiv.querySelector('.status').textContent = 'PASS ✓';
+
+                    resultDiv.innerHTML = `
+                        <p style="color: green; margin-top: 10px;">✓ Successfully retrieved ${result.data.length} items from Airtable!</p>
+                        <p><strong>Sample Data:</strong></p>
+                        <pre>${JSON.stringify(result.data.slice(0, 2), null, 2)}</pre>
+                    `;
+                } else {
+                    testResults.apiRead = false;
+                    testDiv.className = 'test-item fail';
+                    testDiv.querySelector('.status').className = 'status fail';
+                    testDiv.querySelector('.status').textContent = 'FAIL ✗';
+
+                    resultDiv.innerHTML = `
+                        <p style="color: red; margin-top: 10px;">✗ Failed to read inventory data!</p>
+                        <p><strong>Error:</strong> ${result.error || 'Unknown error'}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                        <p style="margin-top: 10px;"><strong>Common Causes:</strong></p>
+                        <ul>
+                            <li>Invalid API Key (401 error)</li>
+                            <li>Wrong Base ID (404 error)</li>
+                            <li>Missing "Inventory" table in Airtable</li>
+                            <li>Wrong field names in Airtable</li>
+                        </ul>
+                    `;
+                }
+            } catch (error) {
+                testResults.apiRead = false;
+                testDiv.className = 'test-item fail';
+                testDiv.querySelector('.status').className = 'status fail';
+                testDiv.querySelector('.status').textContent = 'FAIL ✗';
+
+                resultDiv.innerHTML = `
+                    <p style="color: red; margin-top: 10px;">✗ Network Error!</p>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        async function testBrowserStorage() {
+            const testDiv = document.getElementById('test-browser-storage');
+            const resultDiv = document.getElementById('result-browser-storage');
+
+            try {
+                resultDiv.innerHTML = '<div class="loading"></div> Testing...';
+
+                // Test localStorage
+                const testKey = 'diagnostic_test';
+                const testValue = { test: true, timestamp: new Date().toISOString() };
+
+                localStorage.setItem(testKey, JSON.stringify(testValue));
+                const retrieved = JSON.parse(localStorage.getItem(testKey));
+                localStorage.removeItem(testKey);
+
+                if (retrieved && retrieved.test === true) {
+                    testResults.browserStorage = true;
+                    testDiv.className = 'test-item pass';
+                    testDiv.querySelector('.status').className = 'status pass';
+                    testDiv.querySelector('.status').textContent = 'PASS ✓';
+
+                    resultDiv.innerHTML = `
+                        <p style="color: green; margin-top: 10px;">✓ localStorage is working correctly!</p>
+                        <p>Browser can cache data for offline support.</p>
+                    `;
+                } else {
+                    throw new Error('localStorage test failed');
+                }
+            } catch (error) {
+                testResults.browserStorage = false;
+                testDiv.className = 'test-item warn';
+                testDiv.querySelector('.status').className = 'status warn';
+                testDiv.querySelector('.status').textContent = 'WARN ⚠';
+
+                resultDiv.innerHTML = `
+                    <p style="color: orange; margin-top: 10px;">⚠ localStorage not available</p>
+                    <p>App will still work but won't cache data for offline use.</p>
+                    <p><strong>Possible causes:</strong> Private/Incognito mode, browser restrictions</p>
+                `;
+            }
+        }
+
+        async function testCors() {
+            const testDiv = document.getElementById('test-cors');
+            const resultDiv = document.getElementById('result-cors');
+
+            try {
+                resultDiv.innerHTML = '<div class="loading"></div> Testing...';
+
+                const response = await fetch(`${API_URL}?action=status`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                testResults.cors = true;
+                testDiv.className = 'test-item pass';
+                testDiv.querySelector('.status').className = 'status pass';
+                testDiv.querySelector('.status').textContent = 'PASS ✓';
+
+                resultDiv.innerHTML = `
+                    <p style="color: green; margin-top: 10px;">✓ CORS and network access working correctly!</p>
+                    <p>Cross-browser data sharing should work.</p>
+                `;
+            } catch (error) {
+                testResults.cors = false;
+                testDiv.className = 'test-item fail';
+                testDiv.querySelector('.status').className = 'status fail';
+                testDiv.querySelector('.status').textContent = 'FAIL ✗';
+
+                resultDiv.innerHTML = `
+                    <p style="color: red; margin-top: 10px;">✗ CORS or network error!</p>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        function showSummary() {
+            const summaryDiv = document.getElementById('summary');
+            const passCount = Object.values(testResults).filter(v => v === true).length;
+            const totalTests = Object.keys(testResults).length;
+
+            let summaryHTML = `<h3>Test Results: ${passCount}/${totalTests} Passed</h3>`;
+
+            if (passCount === totalTests) {
+                summaryHTML += `
+                    <div style="background: #4caf50; color: white; padding: 20px; border-radius: 8px; margin-top: 15px;">
+                        <h2 style="margin: 0; color: white;">✓ ALL TESTS PASSED!</h2>
+                        <p style="margin-top: 10px;">Your system is properly configured. Cross-browser data sharing should work!</p>
+                        <p style="margin-top: 10px;">
+                            <a href="inventory_custom_layout.html" style="color: white; text-decoration: underline;">
+                                → Go to Inventory Management Page
+                            </a>
+                        </p>
+                    </div>
+                `;
+            } else {
+                summaryHTML += `
+                    <div style="background: #f44336; color: white; padding: 20px; border-radius: 8px; margin-top: 15px;">
+                        <h2 style="margin: 0; color: white;">✗ CONFIGURATION ISSUES FOUND</h2>
+                        <p style="margin-top: 10px;">Please fix the errors shown above before data sharing will work.</p>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h4>Quick Fix Checklist:</h4>
+                        <ul>
+                            <li>✓ Go to Heroku Dashboard → Your App → Settings → Config Vars</li>
+                            <li>✓ Add AIRTABLE_API_KEY (get from <a href="https://airtable.com/create/tokens" target="_blank">here</a>)</li>
+                            <li>✓ Add AIRTABLE_INVENTORY_BASE_ID (from your Airtable URL)</li>
+                            <li>✓ Make sure your Airtable table is named "Inventory"</li>
+                            <li>✓ Make sure field names match exactly (case-sensitive)</li>
+                            <li>✓ Wait 30 seconds for Heroku to restart</li>
+                            <li>✓ Refresh this page and run tests again</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            summaryDiv.innerHTML = summaryHTML;
+        }
+    </script>
+</body>
+</html>
