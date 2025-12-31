@@ -10,8 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 // Get Airtable credentials from environment variables
 $AIRTABLE_API_KEY = getenv('AIRTABLE_API_KEY');
-$AIRTABLE_BASE_ID = getenv('AIRTABLE_BASE_ID');
-$AIRTABLE_TABLE_NAME = 'Inventory';
+$AIRTABLE_BASE_ID = getenv('AIRTABLE_INVENTORY_BASE_ID')
+      ;$AIRTABLE_TABLE_NAME = 'Inventory';
 
 // Get request method and action
 $method = $_SERVER['REQUEST_METHOD'];
